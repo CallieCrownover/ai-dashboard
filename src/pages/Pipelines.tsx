@@ -14,21 +14,31 @@ import { cn } from '../utils/cn'
 function FreshnessCell({ hours, threshold }: { hours: number; threshold: number }) {
   const ratio = hours / threshold
   const color =
-    ratio > 1 ? 'text-red-500' : ratio > 0.8 ? 'text-amber-500' : 'text-gray-600'
-  const thresholdLabel = `${formatFreshness(threshold)} SLA`
+    ratio > 1
+      ? 'text-red-500 dark:text-red-400'
+      : ratio > 0.8
+      ? 'text-amber-500 dark:text-amber-400'
+      : 'text-gray-600 dark:text-gray-400'
   return (
     <div>
       <span className={cn('text-sm tabular-nums font-mono', color)}>
         {formatFreshness(hours)}
       </span>
-      <p className="text-[11px] text-gray-400 mt-0.5">{thresholdLabel}</p>
+      <p className="text-[11px] text-gray-400 dark:text-gray-600 mt-0.5">
+        {formatFreshness(threshold)} SLA
+      </p>
     </div>
   )
 }
 
 function SuccessRateCell({ rate, status }: { rate: number; status: Pipeline['status'] }) {
-  if (status === 'paused') return <span className="text-sm text-gray-300">—</span>
-  const color = rate >= 95 ? 'text-gray-700' : rate >= 80 ? 'text-amber-600' : 'text-red-500'
+  if (status === 'paused') return <span className="text-sm text-gray-300 dark:text-gray-700">—</span>
+  const color =
+    rate >= 95
+      ? 'text-gray-700 dark:text-gray-300'
+      : rate >= 80
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-red-500 dark:text-red-400'
   return <span className={cn('text-sm tabular-nums', color)}>{rate}%</span>
 }
 
@@ -38,8 +48,8 @@ const COLUMNS: ColumnDef<Pipeline>[] = [
     header: 'Pipeline',
     accessor: (r) => (
       <div>
-        <p className="text-sm font-medium text-gray-900">{r.name}</p>
-        <p className="text-[11px] text-gray-400 font-mono mt-0.5">{r.dataset}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{r.name}</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-600 font-mono mt-0.5">{r.dataset}</p>
       </div>
     ),
     sortValue: (r) => r.name,
@@ -49,8 +59,8 @@ const COLUMNS: ColumnDef<Pipeline>[] = [
     header: 'Owner',
     accessor: (r) => (
       <div>
-        <p className="text-sm text-gray-700">{r.team}</p>
-        <p className="text-[11px] text-gray-400 mt-0.5">{r.owner}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">{r.team}</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-600 mt-0.5">{r.owner}</p>
       </div>
     ),
     sortValue: (r) => r.team,
@@ -66,10 +76,12 @@ const COLUMNS: ColumnDef<Pipeline>[] = [
     header: 'Last Run',
     accessor: (r) => (
       <div>
-        <span className="text-sm text-gray-600 tabular-nums">
+        <span className="text-sm text-gray-600 dark:text-gray-400 tabular-nums">
           {formatRelativeTime(r.lastRunAt)}
         </span>
-        <p className="text-[11px] text-gray-400 mt-0.5">{formatDuration(r.avgDurationSeconds)} avg</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-600 mt-0.5">
+          {formatDuration(r.avgDurationSeconds)} avg
+        </p>
       </div>
     ),
     sortValue: (r) => r.lastRunAt,
@@ -86,7 +98,9 @@ const COLUMNS: ColumnDef<Pipeline>[] = [
     accessor: (r) => (
       <span className={cn(
         'text-sm tabular-nums font-medium',
-        r.errorCount24h > 0 ? 'text-red-500' : 'text-gray-300'
+        r.errorCount24h > 0
+          ? 'text-red-500 dark:text-red-400'
+          : 'text-gray-300 dark:text-gray-700'
       )}>
         {r.errorCount24h > 0 ? r.errorCount24h : '—'}
       </span>
@@ -104,7 +118,7 @@ const COLUMNS: ColumnDef<Pipeline>[] = [
     key: 'action',
     header: '',
     accessor: () => (
-      <button className="text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors whitespace-nowrap">
+      <button className="text-xs font-medium text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-300 transition-colors whitespace-nowrap">
         View →
       </button>
     ),
@@ -173,7 +187,7 @@ export function Pipelines({ refreshKey }: PipelinesProps) {
         <button
           onClick={() => exportCSV(filtered)}
           disabled={filtered.length === 0}
-          className="flex items-center gap-1.5 h-9 px-3 text-sm text-gray-500 hover:text-gray-700 rounded-md border border-gray-200 hover:border-gray-300 bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="flex items-center gap-1.5 h-9 px-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-md border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
         >
           <Download className="w-3.5 h-3.5" />
           Export
@@ -181,7 +195,7 @@ export function Pipelines({ refreshKey }: PipelinesProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         {loading ? (
           <SkeletonTable rows={8} />
         ) : (

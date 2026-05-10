@@ -18,7 +18,11 @@ function FreshnessCell({ hours, threshold }: { hours: number; threshold: number 
   return (
     <span className={cn(
       'text-sm tabular-nums font-mono',
-      ratio > 1 ? 'text-red-500' : ratio > 0.8 ? 'text-amber-500' : 'text-gray-600'
+      ratio > 1
+        ? 'text-red-500 dark:text-red-400'
+        : ratio > 0.8
+        ? 'text-amber-500 dark:text-amber-400'
+        : 'text-gray-600 dark:text-gray-400'
     )}>
       {formatFreshness(hours)}
     </span>
@@ -31,8 +35,8 @@ const ATTENTION_COLUMNS: ColumnDef<Pipeline>[] = [
     header: 'Pipeline',
     accessor: (r) => (
       <div>
-        <p className="text-sm font-medium text-gray-900">{r.name}</p>
-        <p className="text-xs text-gray-400 font-mono mt-0.5">{r.dataset}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{r.name}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-600 font-mono mt-0.5">{r.dataset}</p>
       </div>
     ),
     sortValue: (r) => r.name,
@@ -47,7 +51,9 @@ const ATTENTION_COLUMNS: ColumnDef<Pipeline>[] = [
     key: 'lastRun',
     header: 'Last Run',
     accessor: (r) => (
-      <span className="text-sm text-gray-500 tabular-nums">{formatRelativeTime(r.lastRunAt)}</span>
+      <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums">
+        {formatRelativeTime(r.lastRunAt)}
+      </span>
     ),
     sortValue: (r) => r.lastRunAt,
   },
@@ -61,7 +67,12 @@ const ATTENTION_COLUMNS: ColumnDef<Pipeline>[] = [
     key: 'errors',
     header: 'Errors (24h)',
     accessor: (r) => (
-      <span className={cn('text-sm tabular-nums font-medium', r.errorCount24h > 0 ? 'text-red-500' : 'text-gray-300')}>
+      <span className={cn(
+        'text-sm tabular-nums font-medium',
+        r.errorCount24h > 0
+          ? 'text-red-500 dark:text-red-400'
+          : 'text-gray-300 dark:text-gray-700'
+      )}>
         {r.errorCount24h > 0 ? r.errorCount24h : '—'}
       </span>
     ),
@@ -137,19 +148,19 @@ export function Overview({ refreshKey, onNavigatePipelines }: OverviewProps) {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Needs Attention</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Pipelines with failures or SLA breaches</p>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Needs Attention</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">Pipelines with failures or SLA breaches</p>
           </div>
           <button
             onClick={onNavigatePipelines}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors group"
+            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
           >
             View all pipelines
             <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           {pipelines.loading ? (
             <SkeletonTable rows={4} />
           ) : attentionPipelines.length === 0 ? (

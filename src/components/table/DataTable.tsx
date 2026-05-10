@@ -57,7 +57,6 @@ export function DataTable<T>({
     })
   }, [data, sortKey, sortDir, columns])
 
-  // Reset to page 0 when data changes
   const totalPages = Math.ceil(sorted.length / pageSize)
   const safePage = Math.min(page, Math.max(0, totalPages - 1))
   const paged = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize)
@@ -79,14 +78,14 @@ export function DataTable<T>({
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-gray-200 dark:border-gray-800">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
                   className={cn(
-                    'px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap select-none',
-                    col.sortValue && 'cursor-pointer hover:text-gray-600',
+                    'px-6 py-3 text-left text-xs font-medium text-gray-400 dark:text-gray-600 uppercase tracking-wider whitespace-nowrap select-none',
+                    col.sortValue && 'cursor-pointer hover:text-gray-600 dark:hover:text-gray-400',
                     col.className
                   )}
                 >
@@ -100,7 +99,7 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {paged.length === 0 ? (
               <tr>
                 <td colSpan={columns.length}>
@@ -111,7 +110,7 @@ export function DataTable<T>({
                       onEmptyAction ? (
                         <button
                           onClick={onEmptyAction}
-                          className="text-sm text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                          className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2"
                         >
                           {emptyActionLabel}
                         </button>
@@ -122,11 +121,14 @@ export function DataTable<T>({
               </tr>
             ) : (
               paged.map((row) => (
-                <tr key={rowKey(row)} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={rowKey(row)}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                >
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={cn('px-6 py-4 text-gray-700', col.className)}
+                      className={cn('px-6 py-4 text-gray-700 dark:text-gray-300', col.className)}
                     >
                       {col.accessor(row)}
                     </td>
@@ -139,24 +141,24 @@ export function DataTable<T>({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-3.5 border-t border-gray-200">
-          <p className="text-xs text-gray-400">
+        <div className="flex items-center justify-between px-6 py-3.5 border-t border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-600">
             {sorted.length} results — page {safePage + 1} of {totalPages}
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={safePage === 0}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-500" />
+              <ChevronLeft className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={safePage >= totalPages - 1}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
         </div>

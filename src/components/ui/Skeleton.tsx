@@ -2,13 +2,13 @@ import { cn } from '../../utils/cn'
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('animate-pulse rounded bg-gray-100', className)} />
+    <div className={cn('animate-pulse rounded bg-gray-100 dark:bg-gray-800', className)} />
   )
 }
 
 export function SkeletonStatCard() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-3">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-3">
       <Skeleton className="h-3 w-28" />
       <Skeleton className="h-8 w-20" />
       <Skeleton className="h-3 w-32" />
@@ -18,7 +18,7 @@ export function SkeletonStatCard() {
 
 export function SkeletonChart() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
       <div className="flex items-center justify-between mb-5">
         <Skeleton className="h-4 w-36" />
         <Skeleton className="h-6 w-24 rounded-md" />
@@ -30,7 +30,7 @@ export function SkeletonChart() {
 
 export function SkeletonTable({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-gray-100 dark:divide-gray-800">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="px-6 py-4 flex items-center gap-6">
           <div className="space-y-1.5 flex-1">
