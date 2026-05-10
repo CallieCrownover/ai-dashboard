@@ -1,64 +1,47 @@
 import { cn } from '../../utils/cn'
-import type { ModelStatus, RequestStatus } from '../../types'
+import type { PipelineStatus } from '../../types'
 
-type Variant = 'green' | 'yellow' | 'red' | 'blue' | 'gray'
-
-interface BadgeProps {
-  children: React.ReactNode
-  variant?: Variant
-  dot?: boolean
-  className?: string
+interface StatusConfig {
+  dot: string
+  label: string
+  text: string
 }
 
-const variantClasses: Record<Variant, string> = {
-  green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-  yellow: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-  red: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-  blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  gray: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+const STATUS_CONFIG: Record<PipelineStatus, StatusConfig> = {
+  healthy: { dot: 'bg-emerald-500', label: 'Healthy', text: 'text-emerald-700' },
+  warning: { dot: 'bg-amber-400', label: 'Warning', text: 'text-amber-700' },
+  failed: { dot: 'bg-red-500', label: 'Failed', text: 'text-red-600' },
+  running: { dot: 'bg-blue-500 animate-pulse', label: 'Running', text: 'text-blue-600' },
+  paused: { dot: 'bg-gray-300', label: 'Paused', text: 'text-gray-400' },
 }
 
-const dotClasses: Record<Variant, string> = {
-  green: 'bg-emerald-500',
-  yellow: 'bg-amber-500',
-  red: 'bg-red-500',
-  blue: 'bg-blue-500',
-  gray: 'bg-gray-500',
-}
-
-export function Badge({ children, variant = 'gray', dot = false, className }: BadgeProps) {
+export function StatusBadge({ status }: { status: PipelineStatus }) {
+  const cfg = STATUS_CONFIG[status]
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium',
-        variantClasses[variant],
-        className
-      )}
-    >
-      {dot && (
-        <span className={cn('w-1.5 h-1.5 rounded-full', dotClasses[variant])} />
-      )}
-      {children}
-    </span>
+    <div className="flex items-center gap-1.5">
+      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
+      <span className={cn('text-sm', cfg.text)}>{cfg.label}</span>
+    </div>
   )
 }
 
-export function ModelStatusBadge({ status }: { status: ModelStatus }) {
-  const map: Record<ModelStatus, { label: string; variant: Variant }> = {
-    healthy: { label: 'Healthy', variant: 'green' },
-    degraded: { label: 'Degraded', variant: 'yellow' },
-    down: { label: 'Down', variant: 'red' },
-  }
-  const { label, variant } = map[status]
-  return <Badge variant={variant} dot>{label}</Badge>
+interface TagProps {
+  children: React.ReactNode
+  variant?: 'default' | 'muted'
+  className?: string
 }
 
-export function RequestStatusBadge({ status }: { status: RequestStatus }) {
-  const map: Record<RequestStatus, { label: string; variant: Variant }> = {
-    success: { label: 'Success', variant: 'green' },
-    error: { label: 'Error', variant: 'red' },
-    timeout: { label: 'Timeout', variant: 'yellow' },
-  }
-  const { label, variant } = map[status]
-  return <Badge variant={variant}>{label}</Badge>
+export function Tag({ children, variant = 'default', className }: TagProps) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+        variant === 'default' && 'bg-gray-100 text-gray-600',
+        variant === 'muted' && 'bg-gray-50 text-gray-400',
+        className
+      )}
+    >
+      {children}
+    </span>
+  )
 }

@@ -1,77 +1,48 @@
-export type ModelStatus = 'healthy' | 'degraded' | 'down'
-export type RequestStatus = 'success' | 'error' | 'timeout'
+export type PipelineStatus = 'healthy' | 'warning' | 'failed' | 'running' | 'paused'
 
-export interface AIModel {
+export interface Pipeline {
   id: string
   name: string
-  provider: string
-  version: string
-  status: ModelStatus
-  region: string
-  contextWindow: number
+  description: string
+  owner: string
+  team: string
+  status: PipelineStatus
+  lastRunAt: string
+  nextRunAt: string
+  avgDurationSeconds: number
+  freshnessHours: number
+  freshnessThresholdHours: number
+  errorCount24h: number
+  successRate7d: number
+  dataset: string
 }
 
-export interface LatencyPoint {
-  timestamp: string
-  p50: number
-  p95: number
-  p99: number
+export interface PipelineRunPoint {
+  date: string
+  success: number
+  failed: number
 }
 
-export interface TokenUsagePoint {
-  timestamp: string
-  input: number
-  output: number
-}
-
-export interface ErrorRatePoint {
-  timestamp: string
-  rate: number
-  total: number
-}
-
-export interface LogEntry {
-  id: string
-  modelId: string
-  modelName: string
-  provider: string
-  timestamp: string
-  latencyMs: number
-  inputTokens: number
-  outputTokens: number
-  status: RequestStatus
-  errorMessage?: string
-  endpoint: string
-}
-
-export interface ModelSummary {
-  modelId: string
-  modelName: string
-  provider: string
-  status: ModelStatus
-  avgLatency: number
-  p95Latency: number
-  totalRequests: number
-  successRate: number
-  errorRate: number
-  totalTokens: number
-  costUsd: number
+export interface FreshnessPoint {
+  date: string
+  avgFreshnessHours: number
 }
 
 export interface DashboardStats {
-  totalRequests: number
-  avgLatencyMs: number
-  errorRate: number
-  totalTokens: number
-  activeModels: number
-  requestsDelta: number
-  latencyDelta: number
-  errorDelta: number
+  pipelineHealth: number
+  dataQualityScore: number
+  failedJobs: number
+  slaBreaches: number
+  pipelineHealthDelta: number
+  qualityDelta: number
+  failedJobsDelta: number
+  slaBreachesDelta: number
 }
 
 export type SortDirection = 'asc' | 'desc'
 
-export interface SortState<T extends string = string> {
-  key: T
-  direction: SortDirection
+export interface FilterState {
+  query: string
+  status: PipelineStatus | 'all'
+  owner: string | 'all'
 }

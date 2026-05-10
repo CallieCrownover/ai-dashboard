@@ -1,11 +1,16 @@
-import { Sun, Moon, RefreshCw, Bell } from 'lucide-react'
+import { RefreshCw, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../../providers/ThemeProvider'
 import type { NavPage } from './Sidebar'
 
-const PAGE_TITLES: Record<NavPage, { title: string; subtitle: string }> = {
-  dashboard: { title: 'Dashboard', subtitle: 'Real-time AI model performance overview' },
-  models: { title: 'Models', subtitle: 'Status and metrics per model' },
-  logs: { title: 'Request Logs', subtitle: 'Full request history with filtering' },
+const PAGE_META: Record<NavPage, { title: string; description: string }> = {
+  overview: {
+    title: 'Overview',
+    description: 'Pipeline health, data quality, and SLA status at a glance',
+  },
+  pipelines: {
+    title: 'Pipelines',
+    description: 'Browse, filter, and monitor all pipeline runs',
+  },
 }
 
 interface HeaderProps {
@@ -16,47 +21,30 @@ interface HeaderProps {
 
 export function Header({ page, onRefresh, refreshing }: HeaderProps) {
   const { theme, toggleTheme } = useTheme()
-  const { title, subtitle } = PAGE_TITLES[page]
+  const { title, description } = PAGE_META[page]
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0">
-      <div>
-        <h1 className="text-base font-semibold text-gray-900 dark:text-white leading-none">{title}</h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>
+    <header className="h-14 flex items-center justify-between gap-6 px-6 border-b border-gray-200 bg-white shrink-0">
+      <div className="flex items-baseline gap-3 min-w-0">
+        <h1 className="text-sm font-semibold text-gray-900 shrink-0">{title}</h1>
+        <span className="hidden sm:block text-xs text-gray-400 truncate">{description}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={onRefresh}
           title="Refresh data"
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="h-8 w-8 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
         </button>
-
-        <button
-          title="Notifications"
-          className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
-        </button>
-
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="h-8 w-8 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
-          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
         </button>
-
-        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
-
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-xs font-semibold">
-            CC
-          </div>
-        </div>
       </div>
     </header>
   )

@@ -1,139 +1,75 @@
-import type {
-  AIModel,
-  LatencyPoint,
-  TokenUsagePoint,
-  ErrorRatePoint,
-  LogEntry,
-  ModelSummary,
-  DashboardStats,
-} from '../types'
+import type { Pipeline, PipelineRunPoint, FreshnessPoint, DashboardStats } from '../types'
 
-const MODELS: AIModel[] = [
-  { id: 'claude-opus-4', name: 'Claude Opus 4', provider: 'Anthropic', version: '4.0', status: 'healthy', region: 'us-east-1', contextWindow: 200000 },
-  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic', version: '4.0', status: 'healthy', region: 'us-east-1', contextWindow: 200000 },
-  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', version: '2025-01', status: 'degraded', region: 'eastus', contextWindow: 128000 },
-  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI', version: '2025-01', status: 'healthy', region: 'eastus', contextWindow: 128000 },
-  { id: 'gemini-2-pro', name: 'Gemini 2.0 Pro', provider: 'Google', version: '2.0', status: 'healthy', region: 'us-central1', contextWindow: 1000000 },
-  { id: 'llama-3-70b', name: 'Llama 3 70B', provider: 'Meta', version: '3.1', status: 'down', region: 'us-west-2', contextWindow: 128000 },
-]
-
-function seed(n: number) {
-  // Deterministic-ish pseudo random based on index
-  return ((Math.sin(n) * 10000) % 1 + 1) / 2
+function seed(n: number): number {
+  return (Math.abs(Math.sin(n) * 10000) % 1)
 }
 
-export function generateTimeSeries(hours = 24, intervalMinutes = 30) {
+export function getPipelines(): Pipeline[] {
   const now = Date.now()
-  const points = Math.floor((hours * 60) / intervalMinutes)
-  return Array.from({ length: points }, (_, i) => {
-    const t = new Date(now - (points - i) * intervalMinutes * 60 * 1000)
-    return t.toISOString()
-  })
+  const h = (hrs: number) => new Date(now - hrs * 3600000).toISOString()
+  const fwd = (hrs: number) => new Date(now + hrs * 3600000).toISOString()
+
+  return [
+    { id: 'p001', name: 'customer_events_etl', description: 'Ingests clickstream events from Kafka into Snowflake', owner: 'ml-platform', team: 'Platform', status: 'healthy', lastRunAt: h(1.2), nextRunAt: fwd(0.8), avgDurationSeconds: 142, freshnessHours: 1.2, freshnessThresholdHours: 3, errorCount24h: 0, successRate7d: 99.2, dataset: 'prod.events.customer_events' },
+    { id: 'p002', name: 'user_profile_sync', description: 'Syncs user profiles from PostgreSQL to the data warehouse', owner: 'data-eng', team: 'Platform', status: 'healthy', lastRunAt: h(0.5), nextRunAt: fwd(0.5), avgDurationSeconds: 87, freshnessHours: 0.5, freshnessThresholdHours: 1, errorCount24h: 0, successRate7d: 100, dataset: 'prod.users.profiles' },
+    { id: 'p003', name: 'web_analytics_rollup', description: 'Aggregates GA4 events into session and user metrics', owner: 'analytics', team: 'Marketing', status: 'healthy', lastRunAt: h(3), nextRunAt: fwd(21), avgDurationSeconds: 412, freshnessHours: 3.1, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 98.6, dataset: 'prod.marketing.web_sessions' },
+    { id: 'p004', name: 'transaction_ledger_sync', description: 'Replicates financial transactions from Oracle ERP', owner: 'data-eng', team: 'Finance', status: 'healthy', lastRunAt: h(0.3), nextRunAt: fwd(0.7), avgDurationSeconds: 234, freshnessHours: 0.3, freshnessThresholdHours: 1, errorCount24h: 1, successRate7d: 97.8, dataset: 'prod.finance.transactions' },
+    { id: 'p005', name: 'product_catalog_sync', description: 'Keeps product catalog in sync with upstream Shopify store', owner: 'data-eng', team: 'Engineering', status: 'healthy', lastRunAt: h(2), nextRunAt: fwd(1), avgDurationSeconds: 65, freshnessHours: 2.1, freshnessThresholdHours: 4, errorCount24h: 0, successRate7d: 99.7, dataset: 'prod.commerce.products' },
+    { id: 'p006', name: 'recommendation_features', description: 'Computes user-item affinity scores for the recommendation engine', owner: 'ml-platform', team: 'Product', status: 'healthy', lastRunAt: h(5), nextRunAt: fwd(19), avgDurationSeconds: 1840, freshnessHours: 5.2, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 96.4, dataset: 'prod.ml.recommendation_features' },
+    { id: 'p007', name: 'partner_api_usage', description: 'Aggregates API usage metrics per partner account daily', owner: 'data-eng', team: 'Partnerships', status: 'healthy', lastRunAt: h(1.8), nextRunAt: fwd(22.2), avgDurationSeconds: 198, freshnessHours: 1.8, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 99.1, dataset: 'prod.partnerships.api_usage' },
+    { id: 'p008', name: 'subscription_churn_model', description: 'Runs daily churn probability inference on active subscribers', owner: 'ml-platform', team: 'Growth', status: 'healthy', lastRunAt: h(8), nextRunAt: fwd(16), avgDurationSeconds: 2340, freshnessHours: 8.1, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 95.8, dataset: 'prod.ml.churn_scores' },
+    { id: 'p009', name: 'inventory_snapshot', description: 'Hourly snapshot of warehouse inventory levels across all SKUs', owner: 'data-eng', team: 'Operations', status: 'healthy', lastRunAt: h(0.8), nextRunAt: fwd(0.2), avgDurationSeconds: 112, freshnessHours: 0.8, freshnessThresholdHours: 2, errorCount24h: 0, successRate7d: 98.9, dataset: 'prod.ops.inventory' },
+    { id: 'p010', name: 'search_ranking_features', description: 'Generates query-document relevance signals for search index', owner: 'ml-platform', team: 'Search', status: 'healthy', lastRunAt: h(6), nextRunAt: fwd(6), avgDurationSeconds: 876, freshnessHours: 6.1, freshnessThresholdHours: 12, errorCount24h: 0, successRate7d: 97.2, dataset: 'prod.ml.search_features' },
+    { id: 'p011', name: 'compliance_audit_log', description: 'Exports access and change logs for SOC-2 audit trail', owner: 'data-eng', team: 'Legal', status: 'healthy', lastRunAt: h(12), nextRunAt: fwd(12), avgDurationSeconds: 320, freshnessHours: 12.1, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 100, dataset: 'prod.compliance.audit_log' },
+    { id: 'p012', name: 'email_engagement_weekly', description: 'Computes open/click rates rolled up by campaign and week', owner: 'analytics', team: 'Growth', status: 'healthy', lastRunAt: h(48), nextRunAt: fwd(120), avgDurationSeconds: 560, freshnessHours: 48.2, freshnessThresholdHours: 168, errorCount24h: 0, successRate7d: 100, dataset: 'prod.growth.email_engagement' },
+    { id: 'p013', name: 'cost_attribution_model', description: 'Allocates infrastructure spend to product teams via tagging', owner: 'ml-platform', team: 'Finance', status: 'healthy', lastRunAt: h(24), nextRunAt: fwd(24), avgDurationSeconds: 743, freshnessHours: 24.1, freshnessThresholdHours: 48, errorCount24h: 0, successRate7d: 98.6, dataset: 'prod.finance.cost_attribution' },
+    { id: 'p014', name: 'data_quality_checks', description: 'Runs dbt tests and freshness checks across all critical tables', owner: 'data-eng', team: 'Platform', status: 'healthy', lastRunAt: h(0.2), nextRunAt: fwd(0.8), avgDurationSeconds: 98, freshnessHours: 0.2, freshnessThresholdHours: 1, errorCount24h: 0, successRate7d: 99.8, dataset: 'prod.platform.quality_checks' },
+    { id: 'p015', name: 'revenue_metrics_daily', description: 'Calculates MRR, ARR, and churn rate from billing events', owner: 'analytics', team: 'Finance', status: 'warning', lastRunAt: h(28), nextRunAt: fwd(-4), avgDurationSeconds: 890, freshnessHours: 28.3, freshnessThresholdHours: 24, errorCount24h: 3, successRate7d: 78.6, dataset: 'prod.finance.revenue_metrics' },
+    { id: 'p016', name: 'ad_performance_daily', description: 'Pulls spend and ROAS data from Google Ads and Meta APIs', owner: 'analytics', team: 'Marketing', status: 'warning', lastRunAt: h(30), nextRunAt: fwd(-6), avgDurationSeconds: 1240, freshnessHours: 30.1, freshnessThresholdHours: 24, errorCount24h: 5, successRate7d: 82.1, dataset: 'prod.marketing.ad_performance' },
+    { id: 'p017', name: 'fraud_detection_features', description: 'Computes real-time fraud signals from transaction patterns', owner: 'ml-platform', team: 'Risk', status: 'failed', lastRunAt: h(36), nextRunAt: fwd(-12), avgDurationSeconds: 624, freshnessHours: 36.2, freshnessThresholdHours: 4, errorCount24h: 12, successRate7d: 64.3, dataset: 'prod.risk.fraud_features' },
+    { id: 'p018', name: 'support_ticket_metrics', description: 'Aggregates Zendesk ticket data into SLA and CSAT metrics', owner: 'data-eng', team: 'CX', status: 'failed', lastRunAt: h(18), nextRunAt: fwd(-6), avgDurationSeconds: 445, freshnessHours: 18.4, freshnessThresholdHours: 12, errorCount24h: 8, successRate7d: 71.4, dataset: 'prod.cx.support_metrics' },
+    { id: 'p019', name: 'user_segments_refresh', description: 'Recalculates behavioral segments for targeted campaigns', owner: 'analytics', team: 'Marketing', status: 'running', lastRunAt: h(0.1), nextRunAt: fwd(23.9), avgDurationSeconds: 1860, freshnessHours: 0.1, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 92.9, dataset: 'prod.marketing.user_segments' },
+    { id: 'p020', name: 'mobile_crash_reports', description: 'Aggregates Sentry crash reports by app version and device class', owner: 'data-eng', team: 'Engineering', status: 'paused', lastRunAt: h(72), nextRunAt: fwd(0), avgDurationSeconds: 215, freshnessHours: 72, freshnessThresholdHours: 24, errorCount24h: 0, successRate7d: 0, dataset: 'prod.eng.crash_reports' },
+  ]
 }
 
-export function generateLatencyData(timestamps: string[]): LatencyPoint[] {
-  return timestamps.map((ts, i) => {
-    const base = 120 + seed(i * 3) * 80
-    return {
-      timestamp: ts,
-      p50: Math.round(base),
-      p95: Math.round(base * 1.8 + seed(i * 7) * 40),
-      p99: Math.round(base * 2.5 + seed(i * 11) * 60),
-    }
-  })
-}
-
-export function generateTokenUsageData(timestamps: string[]): TokenUsagePoint[] {
-  return timestamps.map((ts, i) => {
-    const hour = new Date(ts).getHours()
-    const load = 0.4 + 0.6 * Math.sin((hour / 24) * Math.PI)
-    return {
-      timestamp: ts,
-      input: Math.round(12000 * load + seed(i * 5) * 4000),
-      output: Math.round(4500 * load + seed(i * 9) * 1500),
-    }
-  })
-}
-
-export function generateErrorRateData(timestamps: string[]): ErrorRatePoint[] {
-  return timestamps.map((ts, i) => {
-    const spike = i === 10 || i === 28 ? 0.12 : 0
-    return {
-      timestamp: ts,
-      rate: Math.round((0.008 + seed(i * 13) * 0.015 + spike) * 1000) / 1000,
-      total: Math.round(500 + seed(i * 17) * 300),
-    }
-  })
-}
-
-const ENDPOINTS = ['/v1/messages', '/v1/completions', '/v1/chat', '/v1/embeddings']
-const ERROR_MSGS = [
-  'Rate limit exceeded',
-  'Context length exceeded',
-  'Model overloaded',
-  'Invalid API key',
-  'Timeout after 30s',
-]
-
-export function generateLogs(count = 100): LogEntry[] {
+export function getPipelineRuns(days = 30): PipelineRunPoint[] {
   const now = Date.now()
-  return Array.from({ length: count }, (_, i) => {
-    const model = MODELS[Math.floor(seed(i * 19) * MODELS.length)]
-    const r = seed(i * 23)
-    const status: LogEntry['status'] =
-      r < 0.05 ? 'error' : r < 0.08 ? 'timeout' : 'success'
-    const latency =
-      status === 'timeout'
-        ? 30000
-        : Math.round(80 + seed(i * 31) * 400 + (model.status === 'degraded' ? 300 : 0))
+  return Array.from({ length: days }, (_, i) => {
+    const date = new Date(now - (days - 1 - i) * 86400000)
+    const total = 140 + Math.round(seed(i * 7) * 50)
+    // Two deliberate incident spikes for visual interest
+    const failRate = (i === 7 || i === 19) ? 0.14 : 0.02 + seed(i * 11) * 0.04
+    const failed = Math.round(total * failRate)
     return {
-      id: `req_${(i + 1).toString().padStart(6, '0')}`,
-      modelId: model.id,
-      modelName: model.name,
-      provider: model.provider,
-      timestamp: new Date(now - i * 15000 - seed(i) * 10000).toISOString(),
-      latencyMs: latency,
-      inputTokens: Math.round(200 + seed(i * 37) * 2000),
-      outputTokens: Math.round(50 + seed(i * 41) * 800),
-      status,
-      errorMessage: status !== 'success' ? ERROR_MSGS[Math.floor(seed(i * 43) * ERROR_MSGS.length)] : undefined,
-      endpoint: ENDPOINTS[Math.floor(seed(i * 47) * ENDPOINTS.length)],
+      date: date.toISOString().split('T')[0],
+      success: total - failed,
+      failed,
     }
   })
 }
 
-export function generateModelSummaries(): ModelSummary[] {
-  return MODELS.map((m, i) => {
-    const requests = Math.round(8000 + seed(i * 53) * 40000)
-    const errors = Math.round(requests * (0.01 + seed(i * 59) * 0.08))
-    const base = 100 + seed(i * 61) * 150 + (m.status === 'degraded' ? 200 : 0)
+export function getFreshnessData(days = 30): FreshnessPoint[] {
+  const now = Date.now()
+  return Array.from({ length: days }, (_, i) => {
+    const date = new Date(now - (days - 1 - i) * 86400000)
+    const spike = (i === 7 || i === 19) ? 3.5 : 0
     return {
-      modelId: m.id,
-      modelName: m.name,
-      provider: m.provider,
-      status: m.status,
-      avgLatency: Math.round(base),
-      p95Latency: Math.round(base * 2.1),
-      totalRequests: requests,
-      successRate: Math.round(((requests - errors) / requests) * 1000) / 10,
-      errorRate: Math.round((errors / requests) * 1000) / 10,
-      totalTokens: Math.round(requests * (300 + seed(i * 67) * 1200)),
-      costUsd: Math.round(requests * (0.002 + seed(i * 71) * 0.015) * 100) / 100,
+      date: date.toISOString().split('T')[0],
+      avgFreshnessHours: parseFloat((1.4 + seed(i * 13) * 2.0 + spike).toFixed(2)),
     }
   })
 }
 
-export function generateDashboardStats(): DashboardStats {
+export function getDashboardStats(): DashboardStats {
   return {
-    totalRequests: 187432,
-    avgLatencyMs: 218,
-    errorRate: 3.2,
-    totalTokens: 94821000,
-    activeModels: 5,
-    requestsDelta: 12.4,
-    latencyDelta: -8.1,
-    errorDelta: 0.4,
+    pipelineHealth: 75,
+    dataQualityScore: 94.7,
+    failedJobs: 2,
+    slaBreaches: 3,
+    pipelineHealthDelta: 5.0,
+    qualityDelta: -1.2,
+    failedJobsDelta: -3,
+    slaBreachesDelta: 1,
   }
 }
-
-export { MODELS }

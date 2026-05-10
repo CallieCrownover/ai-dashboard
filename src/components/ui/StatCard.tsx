@@ -3,70 +3,66 @@ import { cn } from '../../utils/cn'
 import { Skeleton } from './Skeleton'
 
 interface StatCardProps {
-  title: string
+  label: string
   value: string
   delta?: number
   deltaLabel?: string
-  icon: LucideIcon
-  iconColor?: string
-  iconBg?: string
+  // Whether a positive delta is good (health ↑ = good) or bad (failures ↑ = bad)
+  positiveIsGood?: boolean
+  icon?: LucideIcon
   loading?: boolean
 }
 
 export function StatCard({
-  title,
+  label,
   value,
   delta,
-  deltaLabel,
+  deltaLabel = 'vs last week',
+  positiveIsGood = true,
   icon: Icon,
-  iconColor = 'text-blue-600 dark:text-blue-400',
-  iconBg = 'bg-blue-50 dark:bg-blue-900/30',
   loading = false,
 }: StatCardProps) {
   if (loading) {
     return (
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 p-5 space-y-3">
-        <div className="flex justify-between items-start">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-9 w-9 rounded-lg" />
-        </div>
-        <Skeleton className="h-8 w-1/2" />
+      <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-3">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-8 w-20" />
         <Skeleton className="h-3 w-32" />
       </div>
     )
   }
 
-  const isPositive = delta !== undefined && delta > 0
-  const isNegative = delta !== undefined && delta < 0
+  const isUp = delta !== undefined && delta > 0
+  const isDown = delta !== undefined && delta < 0
+  const isGood = (isUp && positiveIsGood) || (isDown && !positiveIsGood)
+  const isBad = (isUp && !positiveIsGood) || (isDown && positiveIsGood)
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 p-5 shadow-sm animate-fade-in">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{title}</p>
-        <div className={cn('p-2 rounded-lg shrink-0', iconBg)}>
-          <Icon className={cn('w-5 h-5', iconColor)} />
-        </div>
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
+        {Icon && <Icon className="w-4 h-4 text-gray-300" />}
       </div>
-      <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+
+      <p className="mt-3 text-3xl font-semibold text-gray-900 tabular-nums tracking-tight">
         {value}
       </p>
+
       {delta !== undefined && (
         <div className="mt-2 flex items-center gap-1.5">
-          {isPositive && <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />}
-          {isNegative && <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
+          {isGood && <TrendingUp className="w-3 h-3 text-emerald-500" />}
+          {isBad && <TrendingDown className="w-3 h-3 text-red-400" />}
           <span
             className={cn(
-              'text-xs font-medium',
-              isPositive && 'text-emerald-600 dark:text-emerald-400',
-              isNegative && 'text-red-600 dark:text-red-400',
-              !isPositive && !isNegative && 'text-gray-500 dark:text-gray-400'
+              'text-xs',
+              isGood && 'text-emerald-600',
+              isBad && 'text-red-500',
+              !isGood && !isBad && 'text-gray-400'
             )}
           >
-            {delta > 0 ? '+' : ''}{delta}%
+            {delta > 0 ? '+' : ''}{delta}{typeof delta === 'number' && Math.abs(delta) < 10 ? ' pp' : '%'}
           </span>
-          {deltaLabel && (
-            <span className="text-xs text-gray-400 dark:text-gray-500">{deltaLabel}</span>
-          )}
+          <span className="text-xs text-gray-400">{deltaLabel}</span>
         </div>
       )}
     </div>
