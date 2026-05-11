@@ -1,14 +1,37 @@
-# ModelOps — AI Analytics Dashboard
+# Observe — Data Observability Dashboard
 
-A production-ready analytics dashboard for monitoring AI model performance. Built with React 19, TypeScript, Tailwind CSS, and Recharts.
+A clean, enterprise-grade dashboard for monitoring data pipeline health, freshness SLA compliance, and data quality. Built with React 19, TypeScript, Tailwind CSS, and Recharts.
+
+## Screenshots
+
+### Overview
+![Overview: KPI cards, pipeline runs bar chart, incident severity donut, runs vs failures line chart](screenshots/overview-light.png)
+
+### Overview — dark mode
+![Overview in dark mode](screenshots/overview-dark.png)
+
+### Pipelines
+![Full pipeline table with search, status and owner filters, CSV export](screenshots/pipelines-light.png)
+
+### Pipelines — active filter
+![Pipeline table filtered to "analytics" — 5 of 20 results](screenshots/pipelines-filtered.png)
+
+### Mobile
+| Overview | Pipelines | Dark |
+|---|---|---|
+| ![Mobile overview](screenshots/mobile-overview.png) | ![Mobile pipelines](screenshots/mobile-pipelines.png) | ![Mobile dark](screenshots/mobile-dark.png) |
+
+---
 
 ## Features
 
-- **Real-time metrics** — latency percentiles (p50/p95/p99), token usage, and error rate charts
-- **Model health tracking** — per-model status cards with success rate and cost breakdowns
-- **Request log explorer** — sortable, filterable table with CSV export and pagination
-- **Dark / light theme** — persisted to `localStorage`, respects system preference on first load
-- **Loading skeletons & error boundaries** — every data region degrades gracefully
+- **Pipeline health overview** — four stat cards with week-over-week deltas (health %, quality score, failed jobs, SLA breaches)
+- **Pipeline run trend** — stacked bar chart with configurable time range (7d / 14d / 30d) showing daily success and failure counts
+- **Data freshness tracking** — area chart of average data age across all pipelines with a configurable SLA reference line
+- **Needs attention** — Overview page surfaces only failed/warning pipelines so on-call engineers see issues immediately
+- **Full pipeline table** — search + status + owner filters, sortable columns, pagination, CSV export of filtered results
+- **Dark / light theme** — system preference on first load, toggled per-session, persisted to `localStorage`
+- **Loading skeletons & error boundaries** — every data region degrades gracefully; errors show a retry button
 - **Fake API layer** — deterministic generated data with simulated network delay; swap in a real API without touching UI components
 
 ## Tech stack
@@ -59,9 +82,9 @@ npm run preview    # preview the production build locally
 
 ### Option A — Vercel dashboard (recommended for first deploy)
 
-1. Push this repo to GitHub (see below).
+1. Push this repo to GitHub.
 2. Go to [vercel.com/new](https://vercel.com/new) and click **Import Git Repository**.
-3. Select your `ai-dashboard` repo.
+3. Select your repo.
 4. Vercel auto-detects Vite — the defaults are correct:
    - **Framework preset:** Vite
    - **Build command:** `npm run build`
@@ -81,12 +104,6 @@ vercel          # deploys to a preview URL, walks you through project setup
 vercel --prod   # promotes to production
 ```
 
-To add environment variables via CLI:
-
-```bash
-vercel env add VITE_API_BASE_URL
-```
-
 ### `vercel.json` explained
 
 ```json
@@ -98,46 +115,51 @@ vercel env add VITE_API_BASE_URL
 }
 ```
 
-- **rewrites** — sends all routes to `index.html` so the SPA handles navigation client-side.
-- **headers** — tells browsers to cache hashed asset files for one year (Vite content-hashes filenames, so this is safe).
+- **rewrites** — sends all routes to `index.html` so the SPA handles client-side navigation.
+- **headers** — one-year immutable cache on hashed asset files (safe because Vite content-hashes all filenames).
 
 ## Project structure
 
 ```
 src/
 ├── api/
-│   ├── client.ts       # Fake fetch: configurable delay + optional error simulation
-│   ├── data.ts         # Deterministic data generators (time series, logs, summaries)
+│   ├── client.ts       # fakeFetch: configurable delay + optional error simulation
+│   ├── data.ts         # Deterministic pipeline data generators (runs, freshness, stats)
 │   └── endpoints.ts    # Typed API surface — swap implementations here for a real backend
 ├── components/
-│   ├── charts/         # LatencyChart, TokenUsageChart, ErrorRateChart (Recharts)
-│   ├── layout/         # Sidebar (collapsible), Header (theme toggle, refresh)
-│   ├── table/          # DataTable — sortable, searchable, paginated
-│   └── ui/             # Card, Badge, StatCard, Skeleton primitives
+│   ├── charts/         # PipelineRunsChart (stacked bar), FreshnessChart (area + SLA line)
+│   ├── filters/        # FilterBar — search, status select, owner select
+│   ├── layout/         # Sidebar, Header (refresh + theme toggle)
+│   ├── table/          # DataTable — sortable columns, pagination
+│   └── ui/             # StatCard, StatusBadge, EmptyState, Skeleton primitives
 ├── hooks/
 │   └── useAsync.ts     # Generic data-fetching hook: loading / data / error + refetch
 ├── pages/
-│   ├── Dashboard.tsx   # Overview: stat cards, all 3 charts, model summary, recent logs
-│   ├── Models.tsx      # Per-model health cards + comparison table
-│   └── Logs.tsx        # Full request history with status filter and CSV export
+│   ├── Overview.tsx    # Stat cards, charts, needs-attention table
+│   └── Pipelines.tsx   # Full pipeline list with filters and CSV export
 ├── providers/
 │   ├── ErrorBoundary.tsx  # Class component with retry UI
 │   └── ThemeProvider.tsx  # dark/light context + localStorage persistence
-└── types/index.ts      # Shared TypeScript types
+├── types/index.ts      # Shared TypeScript types (Pipeline, FilterState, chart points, etc.)
+└── utils/
+    ├── cn.ts           # clsx wrapper for conditional Tailwind classes
+    └── format.ts       # formatRelativeTime, formatDuration, formatFreshness, formatShortDate
 ```
 
 ## Connecting a real API
 
 All data fetching flows through `src/api/endpoints.ts`. To swap the fake layer for a real one, replace the implementations there — the `useAsync` hook and all UI components are completely decoupled from the data source.
 
-Example:
-
 ```ts
 // src/api/endpoints.ts
 export const api = {
-  getLogs: (limit = 100) =>
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/logs?limit=${limit}`, {
-      headers: { Authorization: `Bearer ${import.meta.env.VITE_API_KEY}` },
-    }).then((r) => r.json()),
+  getPipelines: () =>
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/pipelines`).then((r) => r.json()),
+  getDashboardStats: () =>
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/stats`).then((r) => r.json()),
+  getPipelineRuns: (days = 30) =>
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/runs?days=${days}`).then((r) => r.json()),
+  getFreshnessData: (days = 30) =>
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/freshness?days=${days}`).then((r) => r.json()),
 }
 ```

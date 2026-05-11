@@ -1,4 +1,4 @@
-import type { Pipeline, PipelineRunPoint, FreshnessPoint, DashboardStats } from '../types'
+import type { Pipeline, PipelineRunPoint, FreshnessPoint, DashboardStats, IncidentSeverityPoint } from '../types'
 
 function seed(n: number): number {
   return (Math.abs(Math.sin(n) * 10000) % 1)
@@ -38,7 +38,6 @@ export function getPipelineRuns(days = 30): PipelineRunPoint[] {
   return Array.from({ length: days }, (_, i) => {
     const date = new Date(now - (days - 1 - i) * 86400000)
     const total = 140 + Math.round(seed(i * 7) * 50)
-    // Two deliberate incident spikes for visual interest
     const failRate = (i === 7 || i === 19) ? 0.14 : 0.02 + seed(i * 11) * 0.04
     const failed = Math.round(total * failRate)
     return {
@@ -63,13 +62,22 @@ export function getFreshnessData(days = 30): FreshnessPoint[] {
 
 export function getDashboardStats(): DashboardStats {
   return {
-    pipelineHealth: 75,
-    dataQualityScore: 94.7,
-    failedJobs: 2,
+    pipelineHealth: 98.2,
+    dataQualityScore: 94.6,
+    failedJobs: 12,
     slaBreaches: 3,
-    pipelineHealthDelta: 5.0,
-    qualityDelta: -1.2,
-    failedJobsDelta: -3,
-    slaBreachesDelta: 1,
+    pipelineHealthDelta: 2.4,
+    qualityDelta: 1.8,
+    failedJobsDelta: -5,
+    slaBreachesDelta: -2,
   }
+}
+
+export function getIncidentSeverity(): IncidentSeverityPoint[] {
+  return [
+    { name: 'Critical', value: 12, color: '#f43f5e' },
+    { name: 'High',     value: 23, color: '#f97316' },
+    { name: 'Medium',   value: 45, color: '#eab308' },
+    { name: 'Low',      value: 61, color: '#60a5fa' },
+  ]
 }

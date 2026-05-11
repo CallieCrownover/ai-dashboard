@@ -1,36 +1,27 @@
 import { cn } from '../../utils/cn'
 
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn('animate-pulse rounded bg-gray-100 dark:bg-gray-800', className)} />
-  )
-}
-
-export function SkeletonStatCard() {
-  return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-3">
-      <Skeleton className="h-3 w-28" />
-      <Skeleton className="h-8 w-20" />
-      <Skeleton className="h-3 w-32" />
-    </div>
-  )
+  return <div className={cn('animate-pulse rounded bg-slate-100 dark:bg-slate-800', className)} />
 }
 
 export function SkeletonChart() {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+    <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
-        <Skeleton className="h-4 w-36" />
-        <Skeleton className="h-6 w-24 rounded-md" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-3 w-52" />
+        </div>
+        <Skeleton className="h-8 w-28 rounded-xl" />
       </div>
-      <Skeleton className="h-[220px] w-full rounded" />
+      <Skeleton className="h-[220px] w-full rounded-xl" />
     </div>
   )
 }
 
 export function SkeletonTable({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+    <div className="divide-y divide-slate-100 dark:divide-slate-800">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="px-6 py-4 flex items-center gap-6">
           <div className="space-y-1.5 flex-1">
@@ -41,7 +32,7 @@ export function SkeletonTable({ rows = 6 }: { rows?: number }) {
           <Skeleton className="h-3 w-14" />
           <Skeleton className="h-3 w-12" />
           <Skeleton className="h-3 w-10" />
-          <Skeleton className="h-6 w-12 rounded" />
+          <Skeleton className="h-5 w-14 rounded-full" />
         </div>
       ))}
     </div>

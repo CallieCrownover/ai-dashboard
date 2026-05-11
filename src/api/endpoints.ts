@@ -1,5 +1,5 @@
 import { fakeFetch } from './client'
-import { getPipelines, getPipelineRuns, getFreshnessData, getDashboardStats } from './data'
+import { getPipelines, getPipelineRuns, getFreshnessData, getDashboardStats, getIncidentSeverity } from './data'
 
 export const api = {
   getDashboardStats: () =>
@@ -13,4 +13,7 @@ export const api = {
 
   getFreshnessData: (days = 30) =>
     fakeFetch(() => getFreshnessData(days), 450),
+
+  getIncidentSeverity: () =>
+    fakeFetch(getIncidentSeverity, 300),
 }

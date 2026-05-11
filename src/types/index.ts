@@ -1,5 +1,7 @@
 export type PipelineStatus = 'healthy' | 'warning' | 'failed' | 'running' | 'paused'
 
+export type NavPage = 'overview' | 'pipelines'
+
 export interface Pipeline {
   id: string
   name: string
@@ -26,6 +28,12 @@ export interface PipelineRunPoint {
 export interface FreshnessPoint {
   date: string
   avgFreshnessHours: number
+}
+
+export interface IncidentSeverityPoint {
+  name: string
+  value: number
+  color: string
 }
 
 export interface DashboardStats {
